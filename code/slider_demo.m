@@ -60,7 +60,6 @@ function slider_demo_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for slider_demo
 handles.output = hObject;
 
-
 % Update handles structure
 guidata(hObject, handles);
 
@@ -87,19 +86,54 @@ function slider1_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-a = handles.a;
 
-h = get(hObject,'Value');
+a = handles.a; % Original image loaded from Browse button
 
-c = reflectSuppress(a, h, 1e-8);
+% Get slider value
+h = get(hObject, 'Value');
 
-str = ['Threshold h:', ' ', sprintf('%.3f',h)];
+% Call reflectSuppress to process the image
+c = reflectSuppress(a, h, 1e-8); % Processed image
 
+% Display the processed image
+str = ['Threshold h:', ' ', sprintf('%.3f', h)];
 set(handles.edit1, 'String', str);
-
 axes(handles.axes2);
-
 imshow(c);
+
+% Log PSNR and SSIM values
+if size(a, 3) == 3 % Convert original to grayscale if RGB
+    a_gray = rgb2gray(a);
+else
+    a_gray = a;
+end
+
+if size(c, 3) == 3 % Convert processed to grayscale if RGB
+    c_gray = rgb2gray(c);
+else
+    c_gray = c;
+end
+
+
+% Ensure both images are of the same class
+if ~isa(a_gray, 'double')
+    a_gray = im2double(a_gray); % Convert original image to double precision
+end
+if ~isa(c_gray, 'double')
+    c_gray = im2double(c_gray); % Convert processed image to double precision
+end
+
+% Calculate PSNR
+psnrValue = psnr(c_gray, a_gray);
+
+% Calculate SSIM
+ssimValue = ssim(c_gray, a_gray);
+
+% Log the values to the MATLAB command window
+disp(['PSNR: ', num2str(psnrValue), ' dB']);
+disp(['SSIM: ', num2str(ssimValue)]);
+
+
 
 % --- Executes during object creation, after setting all properties.
 function slider1_CreateFcn(hObject, eventdata, handles)
